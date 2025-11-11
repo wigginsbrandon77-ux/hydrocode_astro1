@@ -1,0 +1,118 @@
+# =========================================================
+# Input Deck for Stellar Octant Explosion in 3D
+# =========================================================
+# This setup creates an octant (1/8th) of a star from a 
+# 1D stellar profile and triggers an explosion at the core.
+# 
+# Physical Motivation:
+# This simulates a core-collapse supernova or thermonuclear
+# explosion in a stellar environment. The octant setup uses
+# reflective boundaries to model a full sphere efficiently.
+# =========================================================
+
+# Problem Configuration
+problem = STELLAR_OCTANT_EXPLOSION_3D
+
+# Grid Parameters
+# Use reflective boundaries on x,y,z min to simulate full sphere
+# Use outflow boundaries on x,y,z max to allow ejecta to escape
+nx = 128
+ny = 128
+nz = 128
+
+# Domain: octant from 0 to +2.0 in each direction
+# This should encompass the star (R ~ 1.0) with room for expansion
+xmin = 0.0
+xmax = 1.5
+ymin = 0.0
+ymax = 1.5
+zmin = 0.0
+zmax = 1.5
+
+# Time Parameters
+t_end = 5.0          # Run for ~5 dynamical times
+output_dt = 0.01      # Output every 0.1 time units
+cfl = 0.4
+
+# Physics Parameters
+gamma = 1.666667     # Adiabatic index (5/3 for ideal monatomic gas)
+G_const = 1.0        # Gravitational constant (enable self-gravity)
+
+# Boundary Conditions
+# Use reflective on the inner faces (x=0, y=0, z=0) to simulate full sphere
+# Use outflow on outer faces to allow ejecta to escape
+bc_xmin = REFLECTIVE
+bc_xmax = OUTFLOW
+bc_ymin = REFLECTIVE
+bc_ymax = OUTFLOW
+bc_zmin = REFLECTIVE
+bc_zmax = OUTFLOW
+
+# Stellar Profile
+stellar_profile = stellar_profile.txt
+
+# Explosion Parameters
+# Energy in code units - you can scale this to explore different explosion energies
+# For reference, 1 FOE (foe = 10^51 erg) in code units depends on your unit system
+# 
+# Typical values to try:
+#   explosion_energy = 0.1   (weak explosion)
+#   explosion_energy = 1.0   (moderate explosion)
+#   explosion_energy = 10.0  (strong explosion)
+#
+explosion_energy = 0.1
+
+# Radius below which to deposit explosion energy
+# Should be in the core region, typically r < 0.2 * R_star
+# For a star with R ~ 1.0, use explosion_radius ~ 0.1-0.3
+explosion_radius = 0.2
+
+# Explosion type: "thermal" or "kinetic"
+#   thermal: Deposits energy as thermal energy (heating)
+#   kinetic: Converts energy to radial kinetic energy (momentum-driven)
+explosion_type = thermal
+
+# Output Configuration
+output_dir = output_octant
+
+# Restart Parameters (set restart = true to continue from a previous run)
+restart = false
+restart_file = output_octant/output_000010.csv
+restart_step = 10
+restart_time = 1.0
+
+# =========================================================
+# Notes on Physical Interpretation:
+# =========================================================
+# 
+# 1. Thermal Explosion:
+#    - Mimics energy deposition from nuclear burning or neutrino heating
+#    - Creates a shock wave that propagates outward through the star
+#    - More realistic for core-collapse supernovae
+#
+# 2. Kinetic Explosion:
+#    - Mimics a piston-driven explosion or direct momentum input
+#    - Immediately accelerates material radially outward
+#    - More like an idealized "bomb" model
+#
+# 3. Determining FOE Equivalent:
+#    To relate code units to physical units (FOE = 10^51 erg):
+#    - Need to know your length scale L, mass scale M, time scale T
+#    - Energy scale: E = M L^2 / T^2
+#    - If L = 10^8 cm, M = 1.4 M_sun = 2.8e33 g, T = 1 s
+#      then E_code = 1 corresponds to 2.8e49 erg
+#      so 1 FOE ≈ 36 code units
+#    - Adjust explosion_energy accordingly based on your unit system
+#
+# 4. Resolution Considerations:
+#    - 128^3 cells in octant → effective 256^3 for full sphere
+#    - For better shock resolution, increase to 256^3 (or 512^3 effective)
+#    - dx ~ 0.016 for 128^3, good for capturing shock structure
+#
+# 5. Suggested Variations:
+#    - Try different explosion_radius (0.1, 0.2, 0.3)
+#    - Try different explosion_energy (0.1, 1.0, 10.0)
+#    - Compare thermal vs kinetic explosion types
+#    - Run with/without gravity (set G_const = 0.0 to disable)
+#
+# =========================================================
